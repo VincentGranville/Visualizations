@@ -1,4 +1,4 @@
-# A Clean Implementation of the Diamond-Square Terrain Generating Algorithm
+# terrain8.py | www.MLTechniques.com | vincentg@MLTechniques.com | 2022
 
 import random
 import numpy as np
@@ -64,6 +64,37 @@ def single_diamond_square_step(d, w, s, avg, frame):
 
     # (i,j) are always the coords of the "new" cell
 
+# palette 'Storm': to simulate cloud formation
+#### mixtures subject to abrupt changes
+###### make sure video width and length multiple of 8
+#### smoothness param
+### classification of landcape on mars and other planets/moons/sun
+####### palette morphing
+### reflecting or constrained brownian motion
+#### mersenne twister: 2^19937 -1 images! interesting problem is to tag them: mountain, see and so on based on colors; then generate other mountains based on mountains in training set
+### advanced dynamical systems: stationary locally -- stationary increments if blending / stationary if mixture
+# like digists of 453245654543/prime; climate; movement of planets; plate tectonic?? eventually my simulation is periodic due to limits of computer for PRNG / issues with PRNG
+#### stochastic convergence // stationarity like time series b/c gaussian -- gaussian can cause extreme changes; uniform mixture on [-s, s] less subject to outliers
+#### blending (w/ gaussian) can result in brutal transitions [not the case w/ mixture gaussian and even less so w/ mixture uniform]
+#### gaussian mixture is w/ 2 gaussian w/ same mean (zero) same variance and independent
+#### mixture of 2 gaussian with same mean is gaussian
+#### connection to brownian motions; evolution process
+#### blending with uniform is not stationary
+## use for disaggregation
+### alpha in RGBA
+### more color levels to avoid deastic change // color equally spaced / distance between 2 ordered colors should be min [algo to do that is iterative]
+########## allow users to fine-tune palette [do this in color_map/ offer to upload from file]
+##### image morphing & terrain generation in Python [mode = morphing or dynamic [time series / dynamical systems[
+#### model cyclones moving on earth; climate change simulations
+### mixture vs. averaging [original is uniform: avg uniform is not uniform]
+################ replace avg by median
+###############  stochastic convergence / dynamical system
+############### convergence?
+##### change palette and window smoothing parameter
+################ transition smoothly from one img to another one ... must manage palettes
+###############  https://stackoverflow.com/questions/71178068/video-morph-between-two-images-ffmpeg-minterpolate
+##############  try gaussian rather than uniform b/c sum of gaussuans is gaussian
+
     # Diamond Step
     for i in range( v, n, w ):
         for j in range( v, n, w ):
@@ -109,7 +140,14 @@ def set_palette(palette):
 
     color_table_storm = [] 
     for k in range(0,29):  
-        color_table_storm.append([k/29, k/29, k/29])
+        color_table_storm.append([k/28, k/28, k/28])
+
+    color_table_vincent = []
+    for k in range(0,29):  
+        red  = 0.9*abs(np.sin(0.20*k))  #  0.9 | 0.20
+        green= 0.6*abs(np.sin(0.21*k))  #  0.6 | 0.21
+        blue = 1.0*abs(np.sin(0.54*k))  #  1.0 | 0.54
+        color_table_vincent.append([red, green, blue])
 
     color_table_terrain = [
             (0.44314, 0.67059, 0.84706),
@@ -146,6 +184,8 @@ def set_palette(palette):
         color_table = color_table_storm
     elif palette == 'Terrain':
         color_table = color_table_terrain
+    elif palette == 'Vincent':
+        color_table = color_table_vincent
     return(color_table)
 
 def morphing(start, end):
@@ -161,24 +201,24 @@ def morphing(start, end):
     frame=-1
     end_terrain = make_terrain( n, ds, bdry, frame)
     if col_morphing:
-        col_table_start=np.array(set_palette('Storm'))
-        col_table_end=np.array(set_palette('Terrain'))
+        col_table_start = np.array(set_palette('Terrain'))**1.00 * np.array(set_palette('Vincent'))**0.50
+        col_table_end = np.array(set_palette('Terrain'))**1.50
 
     for frame in range(0,Nframes): 
         A = frame/(Nframes - 1)
         B = 1 - A
         tmp_terrain = B * start_terrain + A * end_terrain
         if col_morphing:    # both palettes must have same size
-            tmp_col_table = B * col_table_start + A * col_table_end  
+            tmp_col_table = col_table_start**B * col_table_end**A
             tmp_cm = matplotlib.colors.LinearSegmentedColormap.from_list('temp',tmp_col_table)
         else:
             tmp_cm = cm
-        image='terrain'+str(frame)+'.png' # filename of image in current frame
+        image='terrainM'+str(frame)+'.png' # filename of image in current frame
         print("Creating image",image) # show progress on the screen
         plt.figure( figsize=(size, size), dpi=my_dpi ) # create n-by-n pixel fig
         plt.tick_params( left=False, bottom=False, labelleft=False, labelbottom=False )
         plt.imshow( tmp_terrain, cmap=tmp_cm )
-        plt.savefig(image)  # Save to file
+        plt.savefig(image,bbox_inches='tight',pad_inches=0,dpi=my_dpi)  # Save to file
         plt.close()
         flist.append(image)   
 
@@ -187,14 +227,14 @@ def evolution(start):
     
     random.seed(start) 
     for frame in range(0,Nframes): 
-        image='terrain'+str(frame)+'.png' # filename of image in current frame
+        image='terrainE'+str(frame)+'.png' # filename of image in current frame
         print("Creating image",image) # show progress on the screen
         size = (n - 1) / 64 
         plt.figure( figsize=(size, size), dpi=my_dpi ) # create n-by-n pixel fig
         plt.tick_params( left=False, bottom=False, labelleft=False, labelbottom=False )
         terrain = make_terrain( n, ds, bdry, frame )
         plt.imshow( terrain, cmap=cm )
-        plt.savefig(image)  # Save to file
+        plt.savefig(image,bbox_inches='tight',pad_inches=0,dpi=my_dpi)  # Save to file
         plt.close()
         flist.append(image)  
 
@@ -208,16 +248,16 @@ import moviepy.video.io.ImageSequenceClip  # to produce mp4 video
 n            = 1 + 2**9     # Edge size of the resulting image in pixels
 ds           = 0.7          # Roughness delta, 0 < ds < 1 : smaller ds => smoother results
 bdry         = periodic     # One of the averaging routines: fixed or periodic
-Nframes      = 40           # must be > 10
+Nframes      = 100          # must be > 10
 my_dpi       = 300          # dots per inch (image resolution)
-fps          = 1            # frames per second
-mode         = 'Mixture'    # options: 'Blending' or 'Mixture'
-jump         = 0.05         # the lower, the smoother the image transitions (0 < jump < 1) 
-weight       = 0.5          # used in Gaussian mixture: low weight keeps pixel color little changed
+fps          = 5            # frames per second
+mode         = 'Blending'    # options: 'Blending' or 'Mixture'
+jump         = 0.5  #0.01       # the lower, the smoother the image transitions (0 < jump < 1) 
+weight       = 0.2          # used in Gaussian mixture: low weight keeps pixel color little changed
 start        = 134          # seed for random number generator, for initial image
 end          = 143          # seed for target image, used in morphing only
-distribution = 'Uniform'    # option: 'Gaussian' or 'Uniform'
-palette      = 'Terrain'    # options: 'Storm' or 'Terrain'
+distribution = 'Gaussian'    # option: 'Gaussian' or 'Uniform'
+palette      = 'Terrain'    # options: 'Storm', 'Terrain' or 'Vincent'
 method       = 'Evolution'  # options: 'Morphing' or 'Evolution'
 col_morphing = False        # available in morphing method only
 
@@ -235,4 +275,3 @@ elif method == 'Morphing':
 # output video 
 clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(flist, fps=fps) 
 clip.write_videofile('terrain.mp4')
-        
