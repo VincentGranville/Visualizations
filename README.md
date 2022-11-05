@@ -3,4 +3,5 @@ Currently available in the <a href="https://github.com/VincentGranville/Visualiz
 <li> Material related to data animations (MP4 videos, animated gifs) and visualizing high dimensional data. In Python. See related article with full description, <em>The Art of Visualizing High Dimensional Data</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>.</li>
   <li>Contour plots, including animated maps. Python code: Matplotlib vs. Plotpy. All the details are in the article <em>From 3D Contour Plots to AI-Generated Art
 </em>, available <a href="https://mltblog.com/3MX5GrM">here</a>.</li>
+<li>Python code related to the article <em>Dynamic Clouds and Landscape Generation: Morphing and Evolutionary Processes</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>.</li>
 </ul>
