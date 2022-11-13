@@ -11,6 +11,8 @@ def getAcc( pos, mass, G, law, softening, col ):
     # G is Newton's Gravitational constant
     # softening is the softening length
     # a is N x 3 matrix of accelerations
+    #
+    # Also: update collisionTable
 
     # positions r = [x,y,z] for all particles
     x = pos[:,0:1]
@@ -33,6 +35,11 @@ def getAcc( pos, mass, G, law, softening, col ):
            for j in range(i+1,N):
                if  inv_r3[i][j] > threshold and mass[i] != 0 and mass[j] !=0:
                    print("Collision between body",i,"and",j)
+                   dist=np.linalg.norm(pos[i] - centroid)  # distance to centroid
+                   collData = str(frame)+" "+str(i)+" "+str(j)+" "+col[i]+" "+col[j]
+                   collData = collData +" "+str(mass[i])+" "+str(mass[j])+" "+str(dist)
+                   # collData = collData +" "+str(centroid)
+                   collisionTable.append(collData)
                    mass[i]=mass[i]+mass[j]
                    mass[j]=0
                    col[i]='orange'
@@ -47,6 +54,7 @@ def getAcc( pos, mass, G, law, softening, col ):
     return a
 
 def vector_to_string(vector):
+    # turn numpy array entry into string of tab-separated values 
     string = str(vector)
     string = " ".join(string.split()) # multiple spaces replaced by one space
     string = string.replace('[ ','').replace('[','')
@@ -126,7 +134,9 @@ plt.rc('ytick', labelsize=5)    # fontsize of the tick labels
 ax1.xaxis.set_tick_params(width=0.1)
 ax1.yaxis.set_tick_params(width=0.1)
 
-flist=[] # list of image filenames for the video
+flist=[]          # list of image filenames for the video
+collisionTable=[] # collision table
+                  
 
 if Nt > 2000:
     print("About to generate", Nt, "images.")
@@ -190,9 +200,13 @@ for frame in range(Nt):
         im.save(image,"PNG")
         flist.append(image)   
     plt.pause(0.001)
-
 if saveData:
     OUT.close()
+
+# output collision table
+OUT2=open("nbody_collisions.txt","w")
+for entry in collisionTable:
+    OUT2.write(vector_to_string(entry)+"\n")
             
 # output video / fps is number of frames per second
 if createVideo:
