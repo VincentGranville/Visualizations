@@ -1,3 +1,9 @@
+column 1: video frame (representing the time)
+column 2 and 3: IDs of body invloved
+column 3 and 4: cluster colors of the two bodies (orange if not the first collision)
+column 5: masses of the two bodied
+column 6: distance between impact and centroid of star system
+
 5	397	634	magenta	magenta	3.10148256	1.17865502	2.9104953434335057
 6	144	166	green	green	0.83144528	2.65991348	3.4400775032795403
 7	119	206	green	green	12.91273343	1.91258415	3.4472091426615665
