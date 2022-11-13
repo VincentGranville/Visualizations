@@ -45,31 +45,41 @@ def getAcc( pos, mass, G, law, softening, col ):
     # pack together the acceleration components
     a = np.hstack((ax,ay,az))
     return a
+
+def vector_to_string(vector):
+    string = str(vector)
+    string = " ".join(string.split()) # multiple spaces replaced by one space
+    string = string.replace('[ ','').replace('[','')
+    string = string.replace(' ]','').replace(']','')
+    string = string.replace(' ',"\t")  ## .replace("\t\t","\t")
+    return string
+
     
 #--- main
     
 # Simulation parameters
-N             = 1000        # Number of particles
+N             = 1000       # Number of particles
 t             = 0          # current time of the simulation
 tEnd          = 40.0       # time at which simulation ends
-dt            = 0.02     # timestep
+dt            = 0.02       # timestep
 softening     = 0.1        # softening length
 G             = 0.1        # Newton's Gravitational Constant
-starBoost     = 0.0      #  create one massive star in the system, if starBoost > 1 or < -1 
-law           = 3       # exponent in denominator, gravitation law (should be set to 3) 
-speed         = 0.8         # high initial speed, above 'escape velocity', results in dispersion
-zoom          = 10       # output on [-zoom, zoom] x [-zoom, zoom ] image
+starBoost     = 0.0        #  create one massive star in the system, if starBoost > 1 or < -1 
+law           = 3          # exponent in denominator, gravitation law (should be set to 3) 
+speed         = 0.8        # high initial speed, above 'escape velocity', results in dispersion
+zoom          = 4          # output on [-zoom, zoom] x [-zoom, zoom ] image
 seed          = 58         # set the random number generator seed
 adjustVel     = False      # always True in original version
-negativeMass  = False       # if true, bodies are allowed to have negative mass
-collisions    = True      # if true, collisions are properly handled
+negativeMass  = False      # if true, bodies are allowed to have negative mass
+collisions    = True       # if true, collisions are properly handled
 collThresh    = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
 expand        = 2.0        # enlarge window over time if expand > 0 
-origin        = 'Centroid'   # options: 'Star_0' or 'Centroid'
+origin        = 'Centroid' # options: 'Star_0' or 'Centroid'
 threeClusters = True       # if true, generate three separate star clusters
 fps           = 20         # frames per second in video
 my_dpi        = 240        # dots per inch in video
 createVideo   = True       # set to False for testing purposes (much faster!)
+saveData      = True       # save data to nbody.txt if True (large file!)
     
 # Generate Initial Conditions
 np.random.seed(seed)            
@@ -94,9 +104,6 @@ if threeClusters:
     for k in range(int(N/3),int(2*N/3)):
         pos[k] += [0.0, 5.0, 1.0]
         col[k] = 'magenta'
-#print(pos) #####
-#exit() ####
-
 vel  = speed * np.random.randn(N,3)  
     
 # Convert to Center-of-Mass frame
@@ -128,6 +135,10 @@ if Nt > 2000:
         exit()
 
 # Simulation Main Loop
+
+if saveData:
+    OUT=open("nbody.txt","w")
+
 for frame in range(Nt): 
         
     vel += acc * dt/2.0 # (1/2) kick
@@ -149,7 +160,18 @@ for frame in range(Nt):
     else:
         for k in range(N):
             centroid += abs(mass[k]) * pos[k] / totalMass
-    adjustedMass /= (1.0 + expand/Nt)
+
+    # save results
+    if saveData:
+        for k in range(N):
+            line=str(frame)+"\t"+str(k)+"\t"+str(float(mass[k]))+"\t"+str(col[k])+"\t"
+            string1 = vector_to_string(pos[k])
+            string2 = vector_to_string(centroid)
+            string3 = vector_to_string(vel[k])
+            line=line+string1+"\t"+string2+"\t"+string3+"\n"
+            OUT.write(line)    
+
+    adjustedMass /= (1.0 + expand/Nt) # for visualization only
     plt.scatter(pos[:,0]-centroid[0],pos[:,1]-centroid[1],s=abs(adjustedMass),color=col)
     zoom *= (1.0 + expand/Nt) 
     ax1.set(xlim=(-zoom, zoom), ylim=(-zoom, zoom)) 
@@ -168,6 +190,9 @@ for frame in range(Nt):
         im.save(image,"PNG")
         flist.append(image)   
     plt.pause(0.001)
+
+if saveData:
+    OUT.close()
             
 # output video / fps is number of frames per second
 if createVideo:
