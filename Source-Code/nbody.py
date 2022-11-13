@@ -49,26 +49,27 @@ def getAcc( pos, mass, G, law, softening, col ):
 #--- main
     
 # Simulation parameters
-N            = 100        # Number of particles
-t            = 0          # current time of the simulation
-tEnd         = 15.0       # time at which simulation ends
-dt           = 0.01       # timestep
-softening    = 0.1        # softening length
-G            = 1          # Newton's Gravitational Constant
-starBoost    = -30.0      #  create one massive star in the system, if starBoost > 1 or < -1 
-law          = -0.5       # exponent in denominator, gravitation law (should be set to 3) 
-speed        = 0.8        # high initial speed, above 'escape velocity', results in dispersion
-zoom         = 5          # output on [-zoom, zoom] x [-zoom, zoom ] image
-seed         = 58         # set the random number generator seed
-adjustVel    = False      # always True in original version
-negativeMass = True       # if true, bodies are allowed to have negative mass
-collisions   = False      # if true, collisions are properly handled
-collThresh   = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
-expand       = 0.0        # enlarge window over time if expand > 0 
-origin       = 'Star_0'   # options: 'Star_0' or 'Centroid'
-fps          = 20         # frames per second in video
-my_dpi       = 240        # dots per inch in video
-createVideo  = True       # set to False for testing purposes (much faster!)
+N             = 1000        # Number of particles
+t             = 0          # current time of the simulation
+tEnd          = 40.0       # time at which simulation ends
+dt            = 0.02     # timestep
+softening     = 0.1        # softening length
+G             = 0.1        # Newton's Gravitational Constant
+starBoost     = 0.0      #  create one massive star in the system, if starBoost > 1 or < -1 
+law           = 3       # exponent in denominator, gravitation law (should be set to 3) 
+speed         = 0.8         # high initial speed, above 'escape velocity', results in dispersion
+zoom          = 10       # output on [-zoom, zoom] x [-zoom, zoom ] image
+seed          = 58         # set the random number generator seed
+adjustVel     = False      # always True in original version
+negativeMass  = False       # if true, bodies are allowed to have negative mass
+collisions    = True      # if true, collisions are properly handled
+collThresh    = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
+expand        = 2.0        # enlarge window over time if expand > 0 
+origin        = 'Centroid'   # options: 'Star_0' or 'Centroid'
+threeClusters = True       # if true, generate three separate star clusters
+fps           = 20         # frames per second in video
+my_dpi        = 240        # dots per inch in video
+createVideo   = True       # set to False for testing purposes (much faster!)
     
 # Generate Initial Conditions
 np.random.seed(seed)            
@@ -86,6 +87,16 @@ for k in range(N):
     else:
         col.append('red')
 pos  = np.random.randn(N,3)   # randomly selected positions and velocities
+if threeClusters:
+    for k in range(int(N/3)):
+        pos[k] += [5.0, 0.0, 0.0]
+        col[k] = 'green'
+    for k in range(int(N/3),int(2*N/3)):
+        pos[k] += [0.0, 5.0, 1.0]
+        col[k] = 'magenta'
+#print(pos) #####
+#exit() ####
+
 vel  = speed * np.random.randn(N,3)  
     
 # Convert to Center-of-Mass frame
@@ -142,7 +153,8 @@ for frame in range(Nt):
     plt.scatter(pos[:,0]-centroid[0],pos[:,1]-centroid[1],s=abs(adjustedMass),color=col)
     zoom *= (1.0 + expand/Nt) 
     ax1.set(xlim=(-zoom, zoom), ylim=(-zoom, zoom)) 
-    ax1.set_aspect('equal', 'box')          
+    ax1.set_aspect('equal', 'box')  
+        
     if createVideo and frame>0:
         # plt.axis('off')
         plt.savefig(image,bbox_inches='tight',pad_inches=0.2,dpi=my_dpi)          
