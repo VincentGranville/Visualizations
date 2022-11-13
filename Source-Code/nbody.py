@@ -43,15 +43,14 @@ tEnd      = 20.0    # time at which simulation ends
 dt        = 0.01    # timestep
 softening = 0.1     # softening length
 G         = 1       # Newton's Gravitational Constant
-starBoost = -30     #  create one massive star in the system, if starBoost > 1 or < -1 
+starBoost = 0     #  create one massive star in the system, if starBoost > 1 or < -1 
 law       = 0.5     # exponent in denominator, gravitation law (should be set to 3) 
-## -3 ### compare with 3 orbits RH // try -0.5 ## 4 videos in one video
 speed     = 0.2     # high initial speed, above 'escape velocity', results in dispersion
-zoom      = 40      # output on [-zoom, zoom] x [-zoom, zoom ] image
+zoom      = 3       # output on [-zoom, zoom] x [-zoom, zoom ] image
 seed      = 58      # set the random number generator seed
 adjustVel = False 
-negativeMass = True
-expand    = 1.0     # enlarge window over time if expand > 0 
+negativeMass = False
+expand    = 0.0     # enlarge window over time if expand > 0 
 fps       = 20      # frames per second in video
 my_dpi    = 240     # dots per inch in video
 createVideo = True
@@ -130,7 +129,7 @@ for frame in range(Nt):
         # plt.axis('off')
         plt.savefig(image,bbox_inches='tight',pad_inches=0.2,dpi=my_dpi)          
         im = Image.open(image)
-        if i==1:  
+        if frame == 1:  
             width, height = im.size
             width=2*int(width/2)
             height=2*int(height/2)
