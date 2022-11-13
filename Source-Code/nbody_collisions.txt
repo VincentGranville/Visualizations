@@ -1,8 +1,12 @@
-column 1: video frame (representing the time)
-column 2 and 3: IDs of body invloved
+Collision data related to video #7 (nbody_set7.mp4, produced by nbody.py)
+
+column 1: video frame (representing the time; min = 0, max = 2000)
+column 2 and 3: IDs of body invloved (N = 1000 bodies, labeled 0, ..., N-1)
 column 3 and 4: cluster colors of the two bodies (orange if not the first collision)
-column 5: masses of the two bodied
+column 5: masses of the two bodies
 column 6: distance between impact and centroid of star system
+
+Note: the full data set ( MB) is available at 
 
 5	397	634	magenta	magenta	3.10148256	1.17865502	2.9104953434335057
 6	144	166	green	green	0.83144528	2.65991348	3.4400775032795403
