@@ -66,28 +66,38 @@ def vector_to_string(vector):
 #--- main
     
 # Simulation parameters
-N             = 1000       # Number of particles
+N             = 500        # Number of stars
 t             = 0          # current time of the simulation
-tEnd          = 40.0       # time at which simulation ends
-dt            = 0.02       # timestep
+tEnd          = 20.0       # time at which simulation ends
+dt            = 0.01       # timestep
 softening     = 0.1        # softening length
 G             = 0.1        # Newton's Gravitational Constant
-starBoost     = 0.0        #  create one massive star in the system, if starBoost > 1 or < -1 
+starBoost     = 5.0        #  create one massive star in the system, if starBoost > 1 or < -1 
 law           = 3          # exponent in denominator, gravitation law (should be set to 3) 
-speed         = 0.8        # high initial speed, above 'escape velocity', results in dispersion
-zoom          = 4          # output on [-zoom, zoom] x [-zoom, zoom ] image
+speed         = 0.0        # high initial speed, above 'escape velocity', results in dispersion
+zoom          = 2          # output on [-zoom, zoom] x [-zoom, zoom ] image
 seed          = 58         # set the random number generator seed
 adjustVel     = False      # always True in original version
 negativeMass  = False      # if true, bodies are allowed to have negative mass
 collisions    = True       # if true, collisions are properly handled
 collThresh    = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
-expand        = 2.0        # enlarge window over time if expand > 0 
-origin        = 'Centroid' # options: 'Star_0' or 'Centroid'
-threeClusters = True       # if true, generate three separate star clusters
+expand        = 0.0        # enlarge window over time if expand > 0 
+origin        = 'Star_0'   # options: 'Star_0', 'Zero', or 'Centroid'
+threeClusters = False      # if true, generate three separate star clusters
+p             = 0.2        # add one new star with proba p at each new frame if p > 0
+Nstars        = 1          # if p > 0, start with Nstars; will add new stars up to N, over time        
 fps           = 20         # frames per second in video
 my_dpi        = 240        # dots per inch in video
 createVideo   = True       # set to False for testing purposes (much faster!)
-saveData      = True       # save data to nbody.txt if True (large file!)
+saveData      = False      # save data to nbody.txt if True (large file!)
+
+# Handly configurations that are not supported
+if threeClusters and p > 0:
+    print("Error: adding new stars not supported with threeClusters set to True.")
+    exit()
+if Nstars >= N:
+    print("Error: Nstars must be <= N.")
+    exit()
     
 # Generate Initial Conditions
 np.random.seed(seed)            
@@ -104,6 +114,10 @@ for k in range(N):
         col.append('blue')
     else:
         col.append('red')
+    if p > 0 and k >= Nstars:
+        mass[k] = 0      # make room for future stars 
+        col[k] = 'darkviolet'  # newly added stars appear in pink
+
 pos  = np.random.randn(N,3)   # randomly selected positions and velocities
 if threeClusters:
     for k in range(int(N/3)):
@@ -137,7 +151,6 @@ ax1.yaxis.set_tick_params(width=0.1)
 flist=[]          # list of image filenames for the video
 collisionTable=[] # collision table
                   
-
 if Nt > 2000:
     print("About to generate", Nt, "images.")
     answer = input ("Type y to proceed: ")
@@ -150,6 +163,11 @@ if saveData:
     OUT=open("nbody.txt","w")
 
 for frame in range(Nt): 
+
+    if p > 0 and Nstars < N:  # add new star with proba p
+        if np.random.uniform() < p:
+            mass[Nstars] =  np.random.exponential(2.0,1)
+            Nstars += 1
         
     vel += acc * dt/2.0 # (1/2) kick
     pos += vel * dt # drift
@@ -167,7 +185,7 @@ for frame in range(Nt):
     totalMass=np.sum(abs(mass))
     if origin == 'Star_0':
         centroid = pos[0]
-    else:
+    elif origin == 'Centroid':
         for k in range(N):
             centroid += abs(mass[k]) * pos[k] / totalMass
 
