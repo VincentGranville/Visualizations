@@ -91,7 +91,7 @@ my_dpi        = 240        # dots per inch in video
 createVideo   = True       # set to False for testing purposes (much faster!)
 saveData      = False      # save data to nbody.txt if True (large file!)
 
-# Handly configurations that are not supported
+# Handle configurations that are not supported
 if threeClusters and p > 0:
     print("Error: adding new stars not supported with threeClusters set to True.")
     exit()
