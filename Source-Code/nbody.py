@@ -14,6 +14,8 @@ def getAcc( pos, mass, G, law, softening, col ):
     #
     # Also: update collisionTable
 
+    global ncollisions
+
     # positions r = [x,y,z] for all particles
     x = pos[:,0:1]
     y = pos[:,1:2]
@@ -36,12 +38,14 @@ def getAcc( pos, mass, G, law, softening, col ):
                if  inv_r3[i][j] > threshold and mass[i] != 0 and mass[j] !=0:
                    print("Collision between body",i,"and",j)
                    dist=np.linalg.norm(pos[i] - centroid)  # distance to centroid
-                   collData = str(frame)+" "+str(i)+" "+str(j)+" "+col[i]+" "+col[j]
+                   collData = str(ncollisions)+ " "+str(frame)+" "+str(i)+" "+str(j)
+                   collData = collData + " "+col[i]+" "+col[j]
                    collData = collData +" "+str(mass[i])+" "+str(mass[j])+" "+str(dist)
                    # collData = collData +" "+str(centroid)
                    collisionTable.append(collData)
-                   mass[i]=mass[i]+mass[j]
-                   mass[j]=0
+                   ncollisions += 1
+                   mass[i]=mass[i]+mass[j] 
+                   mass[j]=0  
                    col[i]='orange'
                    col[j]='black'
 
@@ -66,30 +70,30 @@ def vector_to_string(vector):
 #--- main
     
 # Simulation parameters
-N             = 500        # Number of stars
+N             = 1000       # Number of stars
 t             = 0          # current time of the simulation
-tEnd          = 20.0       # time at which simulation ends
-dt            = 0.01       # timestep
+tEnd          = 40.0       # time at which simulation ends 
+dt            = 0.02       # timestep
 softening     = 0.1        # softening length
 G             = 0.1        # Newton's Gravitational Constant
-starBoost     = 5.0        #  create one massive star in the system, if starBoost > 1 or < -1 
+starBoost     = 0.0        #  create one massive star in the system, if starBoost > 1 or < -1 
 law           = 3          # exponent in denominator, gravitation law (should be set to 3) 
-speed         = 0.0        # high initial speed, above 'escape velocity', results in dispersion
-zoom          = 2          # output on [-zoom, zoom] x [-zoom, zoom ] image
+speed         = 0.8        # high initial speed, above 'escape velocity', results in dispersion
+zoom          = 4          # output on [-zoom, zoom] x [-zoom, zoom ] image
 seed          = 58         # set the random number generator seed
 adjustVel     = False      # always True in original version
 negativeMass  = False      # if true, bodies are allowed to have negative mass
 collisions    = True       # if true, collisions are properly handled
 collThresh    = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
-expand        = 0.0        # enlarge window over time if expand > 0 
-origin        = 'Star_0'   # options: 'Star_0', 'Zero', or 'Centroid'
-threeClusters = False      # if true, generate three separate star clusters
-p             = 0.2        # add one new star with proba p at each new frame if p > 0
-Nstars        = 1          # if p > 0, start with Nstars; will add new stars up to N, over time        
+expand        = 2.0        # enlarge window over time if expand > 0 
+origin        = 'Centroid' # options: 'Star_0', 'Zero', or 'Centroid'
+threeClusters = True      # if true, generate three separate star clusters
+p             = 0.0        # add one new star with proba p at each new frame if p > 0
+Nstars        = 0          # if p > 0, start with Nstars; will add new stars up to N, over time        
 fps           = 20         # frames per second in video
 my_dpi        = 240        # dots per inch in video
-createVideo   = True       # set to False for testing purposes (much faster!)
-saveData      = False      # save data to nbody.txt if True (large file!)
+createVideo   = True      # set to False for testing purposes (much faster!)
+saveData      = True      # save data to nbody.txt if True (large file!)
 
 # Handle configurations that are not supported
 if threeClusters and p > 0:
@@ -105,7 +109,7 @@ if negativeMass:
     mass = 1.25 + 0.75*np.random.randn(N,1) 
 else:
     mass = np.random.exponential(2.0,(N,1))
-adjustedMass = mass
+adjustedMass = np.copy(mass)
 if starBoost > 1 or starBoost < 0:
     mass[0]= starBoost * np.max(abs(mass))
 col=[]  # bodies with positive mass in blue; other ones in red
@@ -134,6 +138,7 @@ if adjustVel:
         vel[k] -= np.mean(abs(mass[k]) * vel[k]) / np.mean(abs(mass))
     
 # calculate initial gravitational accelerations
+frame=-1
 acc = getAcc( pos, mass, G, law, softening, col )
     
 # number of timesteps (or frames in the video)
@@ -150,6 +155,7 @@ ax1.yaxis.set_tick_params(width=0.1)
 
 flist=[]          # list of image filenames for the video
 collisionTable=[] # collision table
+ncollisions=1 
                   
 if Nt > 2000:
     print("About to generate", Nt, "images.")
@@ -163,7 +169,6 @@ if saveData:
     OUT=open("nbody.txt","w")
 
 for frame in range(Nt): 
-
     if p > 0 and Nstars < N:  # add new star with proba p
         if np.random.uniform() < p:
             mass[Nstars] =  np.random.exponential(2.0,1)
@@ -202,6 +207,7 @@ for frame in range(Nt):
     adjustedMass /= (1.0 + expand/Nt) # for visualization only
     plt.scatter(pos[:,0]-centroid[0],pos[:,1]-centroid[1],s=abs(adjustedMass),color=col)
     zoom *= (1.0 + expand/Nt) 
+
     ax1.set(xlim=(-zoom, zoom), ylim=(-zoom, zoom)) 
     ax1.set_aspect('equal', 'box')  
         
