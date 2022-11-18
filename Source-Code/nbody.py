@@ -47,7 +47,7 @@ def getAcc( pos, mass, G, law, softening, col ):
                    mass[i]=mass[i]+mass[j] 
                    mass[j]=0  
                    col[i]='orange'
-                   col[j]='black'
+                   col[j]='white'
 
     ax = G * (dx * inv_r3) @ mass
     ay = G * (dy * inv_r3) @ mass
@@ -79,21 +79,21 @@ G             = 0.1        # Newton's Gravitational Constant
 starBoost     = 0.0        #  create one massive star in the system, if starBoost > 1 or < -1 
 law           = 3          # exponent in denominator, gravitation law (should be set to 3) 
 speed         = 0.8        # high initial speed, above 'escape velocity', results in dispersion
-zoom          = 4          # output on [-zoom, zoom] x [-zoom, zoom ] image
+zoom          = 10         # output on [-zoom, zoom] x [-zoom, zoom ] image 
 seed          = 58         # set the random number generator seed
 adjustVel     = False      # always True in original version
 negativeMass  = False      # if true, bodies are allowed to have negative mass
 collisions    = True       # if true, collisions are properly handled
 collThresh    = 0.9        # < 1 and > 0.05; fewer collisions if close to 1
-expand        = 2.0        # enlarge window over time if expand > 0 
+expand        = -2.0       # enlarge window over time if expand > 0  
 origin        = 'Centroid' # options: 'Star_0', 'Zero', or 'Centroid'
-threeClusters = True      # if true, generate three separate star clusters
+threeClusters = True       # if true, generate three separate star clusters
 p             = 0.0        # add one new star with proba p at each new frame if p > 0
 Nstars        = 0          # if p > 0, start with Nstars; will add new stars up to N, over time        
 fps           = 20         # frames per second in video
 my_dpi        = 240        # dots per inch in video
-createVideo   = True      # set to False for testing purposes (much faster!)
-saveData      = True      # save data to nbody.txt if True (large file!)
+createVideo   = True       # set to False for testing purposes (much faster!)
+saveData      = False      # save data to nbody.txt if True (large file!)
 
 # Handle configurations that are not supported
 if threeClusters and p > 0:
@@ -109,7 +109,7 @@ if negativeMass:
     mass = 1.25 + 0.75*np.random.randn(N,1) 
 else:
     mass = np.random.exponential(2.0,(N,1))
-adjustedMass = np.copy(mass)
+adjustedMass = 1 
 if starBoost > 1 or starBoost < 0:
     mass[0]= starBoost * np.max(abs(mass))
 col=[]  # bodies with positive mass in blue; other ones in red
@@ -204,8 +204,8 @@ for frame in range(Nt):
             line=line+string1+"\t"+string2+"\t"+string3+"\n"
             OUT.write(line)    
 
-    adjustedMass /= (1.0 + expand/Nt) # for visualization only
-    plt.scatter(pos[:,0]-centroid[0],pos[:,1]-centroid[1],s=abs(adjustedMass),color=col)
+    adjustedMass /= (1.0 + expand/Nt) # for visualization only 
+    plt.scatter(pos[:,0]-centroid[0],pos[:,1]-centroid[1],s=adjustedMass*abs(mass),color=col) 
     zoom *= (1.0 + expand/Nt) 
 
     ax1.set(xlim=(-zoom, zoom), ylim=(-zoom, zoom)) 
