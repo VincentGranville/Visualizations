@@ -1,4 +1,4 @@
-# collision history for star # 138 in set # 7
+# collision history for star # 47 in set # 7
 
 import networkx as nx
 # https://www.python-graph-gallery.com/322-network-layout-possibilities
