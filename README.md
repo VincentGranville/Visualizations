@@ -2,6 +2,7 @@ Currently available in the <a href="https://github.com/VincentGranville/Visualiz
 <ul>
 <li> Material related to data animations (MP4 videos, animated gifs) and visualizing high dimensional data. In Python. See related article with full description, <em>The Art of Visualizing High Dimensional Data</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>.</li>
   <li>Contour plots, including animated maps. Python code: Matplotlib vs. Plotpy. All the details are in the article <em>From 3D Contour Plots to AI-Generated Art
-</em>, available <a href="https://mltblog.com/3MX5GrM">here</a>.</li>
-<li>Python code related to the article <em>Dynamic Clouds and Landscape Generation: Morphing and Evolutionary Processes</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>.</li>
+</em>, available <a href="https://mltblog.com/3MX5GrM">here</a>. Filenames starting with the keyword <code>contour</code> in this folder. </li>
+<li>Python code related to the article <em>Dynamic Clouds and Landscape Generation: Morphing and Evolutionary Processes</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>. Filenames starting with the keyword <code>terrain</code> in this folder.</li>
+<li>Material related to the article <em>Spectacular Videos: Synthetic Universes, with Star Collision Graph</em> available at <a href="https://MLTechniques.com/resources">MLTechniques.com/resources</a>. Filenames starting with the keyword <code>nbody</code> in this folfder.</li>
 </ul>
