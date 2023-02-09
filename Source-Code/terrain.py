@@ -64,37 +64,6 @@ def single_diamond_square_step(d, w, s, avg, frame):
 
     # (i,j) are always the coords of the "new" cell
 
-# palette 'Storm': to simulate cloud formation
-#### mixtures subject to abrupt changes
-###### make sure video width and length multiple of 8
-#### smoothness param
-### classification of landcape on mars and other planets/moons/sun
-####### palette morphing
-### reflecting or constrained brownian motion
-#### mersenne twister: 2^19937 -1 images! interesting problem is to tag them: mountain, see and so on based on colors; then generate other mountains based on mountains in training set
-### advanced dynamical systems: stationary locally -- stationary increments if blending / stationary if mixture
-# like digists of 453245654543/prime; climate; movement of planets; plate tectonic?? eventually my simulation is periodic due to limits of computer for PRNG / issues with PRNG
-#### stochastic convergence // stationarity like time series b/c gaussian -- gaussian can cause extreme changes; uniform mixture on [-s, s] less subject to outliers
-#### blending (w/ gaussian) can result in brutal transitions [not the case w/ mixture gaussian and even less so w/ mixture uniform]
-#### gaussian mixture is w/ 2 gaussian w/ same mean (zero) same variance and independent
-#### mixture of 2 gaussian with same mean is gaussian
-#### connection to brownian motions; evolution process
-#### blending with uniform is not stationary
-## use for disaggregation
-### alpha in RGBA
-### more color levels to avoid deastic change // color equally spaced / distance between 2 ordered colors should be min [algo to do that is iterative]
-########## allow users to fine-tune palette [do this in color_map/ offer to upload from file]
-##### image morphing & terrain generation in Python [mode = morphing or dynamic [time series / dynamical systems[
-#### model cyclones moving on earth; climate change simulations
-### mixture vs. averaging [original is uniform: avg uniform is not uniform]
-################ replace avg by median
-###############  stochastic convergence / dynamical system
-############### convergence?
-##### change palette and window smoothing parameter
-################ transition smoothly from one img to another one ... must manage palettes
-###############  https://stackoverflow.com/questions/71178068/video-morph-between-two-images-ffmpeg-minterpolate
-##############  try gaussian rather than uniform b/c sum of gaussuans is gaussian
-
     # Diamond Step
     for i in range( v, n, w ):
         for j in range( v, n, w ):
