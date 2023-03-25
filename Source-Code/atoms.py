@@ -65,7 +65,7 @@ def get_summary_stats(atom_sizes):
     mean = wsum / weight  # average size 
     return(min, max, mean)
 
-n_frames = 0
+n_frames = -1
 atom_sizes = np.zeros(limit+1) 
 atom_sizes[1] = N
 N_0 = N
@@ -105,12 +105,14 @@ for iter in range(n_iter):
             show_image = True
             t_last = t
     elif mode == 'n_collisions':
-        if n_collisions - n_collisions_last > 20 and n_collisions > -1:
+        if n_collisions - n_collisions_last > 0 and n_collisions > 9000:  # 20, -1
             show_image = True
             n_collisions_last = n_collisions
     if show_last_frame and iter == n_iter - 1:
        show_image = True   
     if show_image:
+        if n_frames == -1:
+            n_frames = 0
         pvals = atom_sizes / N
         my_plot_init()
         plt.figure(figsize=(width/my_dpi, height/my_dpi), dpi=my_dpi)
