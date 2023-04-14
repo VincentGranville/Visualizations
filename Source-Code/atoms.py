@@ -6,14 +6,23 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import moviepy.video.io.ImageSequenceClip
 
-N      = 10000   # initial number of particles (hydrogen atoms) 
-n_iter = 90000   # number of iterations
-limit  = 100     # max number of electrons/atom allowed
-mode   = 'n_collisions'  # options: 'n_collisions' or 'time'
-yaxis  = 'variable'      # options: 'fixed' or 'variable'
-show_last_frame = False  # options: True or False
-seed   = 533
+N       = 8000    # initial number of particles (hydrogen atoms) 
+n_iter  = 9000    # number of iterations (time)
+limit   = 50      # max number of electrons/atom allowed
+N_simul = 100     # number of systems (atom configurations) running in parallel
+max_trials = 1    # trials allowed until 1 collision happens
+seed = 87
 np.random.seed(seed)
+
+atom_sizes = np.zeros((N_simul,limit+1))
+collisions = np.zeros(N_simul)
+arr_N = []
+arr_t = []
+N_0 = N
+for simul in range(N_simul):
+    atom_sizes[(simul,1)] = N
+    arr_N.append(N)
+    arr_t.append(0.0)
 
 def sample_size(pvals):
     u = np.random.uniform()
@@ -24,14 +33,14 @@ def sample_size(pvals):
         cdf_val = cdf_val + pvals[k] 
     return(k)
 
-def my_plot_init():
+def my_plot_init(plt):
     # produces professional-looking plots
     axes = plt.axes()
     [axx.set_linewidth(0.2) for axx in axes.spines.values()]
     axes.margins(x=0)
     axes.margins(y=0)
-    axes.tick_params(axis='both', which='major', labelsize=7)
-    axes.tick_params(axis='both', which='minor', labelsize=7)
+    axes.tick_params(axis='both', which='major', labelsize=12)
+    axes.tick_params(axis='both', which='minor', labelsize=12)
     return()
 
 def save_image(fname,frame):
@@ -50,103 +59,121 @@ def save_image(fname,frame):
     im.save(fname,"PNG")
     return()
 
-def get_summary_stats(atom_sizes):
-    n = len(atom_sizes)
-    min = -1
-    wsum = 0
-    weight = 0
-    for k in range(n):    # k is the atom size
-        if atom_sizes[k] > 0: 
+def get_summary_stats(pvals):
+    min  = -1
+    mean = 0
+    for k in range(limit+1):    # k is the atom size
+        if pvals[k] > 0: 
             if min == -1:
                 min = k   # minimum size
             max = k       # maximum size
-            wsum += k * atom_sizes[k]
-            weight += atom_sizes[k]
-    mean = wsum / weight  # average size 
+            mean += k * pvals[k]
     return(min, max, mean)
 
+
+#---
+mode   = 'atom_size'  # options: 'n_collisions', 'time' or 'atom_size'
+yaxis  = 'variable'      # options: 'fixed' or 'variable'
+show_last_frame = False  # options: True or False
 n_frames = -1
-atom_sizes = np.zeros(limit+1) 
-atom_sizes[1] = N
-N_0 = N
-t   = 0.0
 t_last = 0.0
-n_collisions = 0
 n_collisions_last = 0
-x_axis = np.linspace(0,limit,len(atom_sizes))
+mean_last = 1
 my_dpi = 300          # dots per each for images and videos 
 width  = 2400         # image width
 height = 1800         # image height
 flist = []            # list image filenames for video
-arr_time  = []        # list of times (indexed by video frame)
-arr_min   = []        # min atom size (indexed by video frame)
-arr_max   = []        # max atom size (indexed by video frame)
-arr_mean  = []        # mean atom size (indexed by video frame)
-arr_n_collisions = [] # number of collisions (indexed by video frame)
+history_time = []
+history_min  = []     # min atom size over time
+history_max  = []     # max atom size over time
+history_mean = []     # mean atom size over time
+history_collisions = [] 
 
-for iter in range(n_iter):
-    # collision between one atom with k electrons, and one with l electrons
-    t = t + N_0 / N         # time of collision
-    pvals = atom_sizes / N 
-    k = sample_size(pvals)
-    aux = atom_sizes.copy()
-    aux[k] = aux[k] - 1      # must be >= 0
-    pvals = aux /(N - 1)
-    l = sample_size(pvals)
-    if k + l <= limit and N > 1:
-        n_collisions += 1
-        atom_sizes[k] = atom_sizes[k] - 1   # must be >= 0
-        atom_sizes[l] = atom_sizes[l] - 1   # must be >= 0
-        atom_sizes[k+l] = atom_sizes[k+l] + 1
-        N = N - 1
+for iter in range(n_iter+1):
+
+    #-- core of the algorithm (agglomeration)
+    for simul in range(N_simul):
+        old_N = arr_N[simul]
+        trial = 0
+        while old_N == arr_N[simul] and trial < max_trials:  
+            arr_t[simul] += N_0/arr_N[simul]
+            pvals = np.copy(atom_sizes[simul,:])
+            pvals = pvals / old_N 
+            k = sample_size(pvals)
+            aux = np.copy(atom_sizes[simul,:])
+            aux[k] = aux[k] - 1      # must be >= 0
+            pvals = aux /(old_N - 1)
+            l = sample_size(pvals)
+            if k + l <= limit and N > 1:
+                atom_sizes[(simul,k)] = atom_sizes[(simul,k)] - 1   # must be >= 0
+                atom_sizes[(simul,l)] = atom_sizes[(simul,l)] - 1   # must be >= 0
+                atom_sizes[(simul,k+l)] = atom_sizes[(simul,k+l)] + 1
+                arr_N[simul] = old_N - 1
+                collisions[simul] += 1
+            trial +=1 
+
+    #-- compute summary stats across the N_simul simulations and over time        
+    pvals = np.zeros(limit+1)
+    for k in range(limit+1):
+        for simul in range(N_simul):
+            pvals[k] += atom_sizes[simul,k]/arr_N[simul]
+        pvals[k] /= N_simul  # proba a particle (atom) is of size k
+    mean_time = np.mean(arr_t)
+    mean_collisions = np.mean(collisions)
+    (min, max, mean) = get_summary_stats(pvals)  
+    print("Frame:%4d Iteration:%6d Time:%6.0f Mean size:%6.2f" 
+         %  (n_frames, iter, mean_time, mean))
+    history_time.append(mean_time)
+    history_min.append(min)
+    history_max.append(max)
+    history_mean.append(mean)
+    history_collisions.append(mean_collisions) 
+
+    #-- visualizations 
     show_image = False
     if mode == 'time':
-        if t - t_last > 2000 and time > 5000:
+        if mean_time - t_last > 20 and mean_time > 50:
             show_image = True
-            t_last = t
+            t_last = mean_time
     elif mode == 'n_collisions':
-        if n_collisions - n_collisions_last > 0 and n_collisions > 9000:  # 20, -1
+        if mean_collisions - n_collisions_last > 30 and mean_collisions > 500:  # 9000, 20, -1
             show_image = True
-            n_collisions_last = n_collisions
+            n_collisions_last = mean_collisions
+    elif mode == 'atom_size':
+        if mean - mean_last > 0.1: 
+            show_image = True
+            mean_last = mean
     if show_last_frame and iter == n_iter - 1:
        show_image = True   
     if show_image:
         if n_frames == -1:
             n_frames = 0
-        pvals = atom_sizes / N
-        my_plot_init()
         plt.figure(figsize=(width/my_dpi, height/my_dpi), dpi=my_dpi)
+        my_plot_init(plt)
         if yaxis == 'fixed':
             if n_frames == 0:
                 y_axis_lim = max(pvals)
             plt.ylim(0, y_axis_lim)
-        plt.bar(x_axis, pvals)
+        x_axis = np.linspace(0,limit,limit+1)
+        plt.bar(x_axis[1:], pvals[1:])
         fname='histo_frame'+str(n_frames)+'.png'
         flist.append(fname)
         save_image(fname,n_frames)
         n_frames += 1 
-        (min, max, mean) = get_summary_stats(atom_sizes) 
-        print("Frame:%4d Time:%6.0f Size: min=%3d max=%3d mean =%8.4f" %  
-             (n_frames, t, min, max, mean))
-        arr_time.append(t)
-        arr_min.append(min)
-        arr_max.append(max)
-        arr_mean.append(mean)
-        arr_n_collisions.append(n_collisions) 
         plt.close()
-
+    
 clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(flist, fps=10)
 clip.write_videofile('histo.mp4')
-
+    
 plt.close()
-my_plot_init()
+my_plot_init(plt)
 plt.ylim(0,max+2)
-plt.plot(arr_time,arr_max, linewidth=0.4)
-plt.plot(arr_time,arr_mean, linewidth=0.4)
+plt.plot(history_time,history_max, linewidth=0.4)
+plt.plot(history_time,history_mean, linewidth=0.4)
 plt.show()
 plt.close()
 
-my_plot_init()
-plt.plot(arr_time,arr_n_collisions, linewidth=0.4)
+my_plot_init(plt)
+plt.plot(history_time,history_collisions, linewidth=0.4)
 plt.show()
 plt.close()
