@@ -1,6 +1,5 @@
 import numpy as np
 import plotly.graph_objects as go
-import matplotlib
 
 def create_3Dplot(frame):
 
