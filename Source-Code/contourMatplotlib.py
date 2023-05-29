@@ -1,5 +1,4 @@
 import numpy as np
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 
 plt.rcParams['lines.linewidth']= 0.5
